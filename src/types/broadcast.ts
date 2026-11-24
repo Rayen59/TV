@@ -1,12 +1,24 @@
 export type SportCategoryId =
   | 'all'
   | 'bein'
+  | 'tunisie'
+  | 'qatar'
+  | 'algerie'
+  | 'maroc'
   | 'football'
   | 'channels'
   | 'basketball'
   | 'tennis'
   | 'motorsport'
   | 'combat';
+
+export type ChannelNetwork =
+  | 'beIN SPORTS'
+  | 'Tunisie'
+  | 'Qatar & Golfe'
+  | 'Algérie'
+  | 'Maroc'
+  | 'Sport International';
 
 export interface RealChannelServer {
   id: string;
@@ -19,8 +31,8 @@ export interface RealChannel {
   id: string;
   number: string;
   name: string;
-  network: 'beIN SPORTS' | 'Football TV' | 'Tennis & Auto' | 'NBA & Combat';
-  category: 'channels' | 'football' | 'basketball' | 'tennis' | 'motorsport' | 'combat';
+  network: ChannelNetwork;
+  category: Exclude<SportCategoryId, 'all' | 'bein'>;
   language: string;
   quality: '1080p60' | '720p60';
   description: string;
@@ -60,28 +72,48 @@ export interface RealMatch {
 export const CATEGORIES: { id: SportCategoryId; label: string; description: string }[] = [
   {
     id: 'all',
-    label: 'Tous les Directs',
-    description: 'Tous les matchs réels du jour et chaînes sportives en direct HD',
+    label: 'Tout En Direct',
+    description: 'Toutes les chaînes TV et matchs réels du jour en direct HD',
   },
   {
     id: 'bein',
-    label: 'Chaînes beIN SPORTS',
-    description: 'Bouquet beIN SPORTS XTRA, Live HD et chaînes sportives type Yacine TV',
+    label: 'beIN SPORTS',
+    description: 'Chaînes beIN SPORTS XTRA et Live HD',
+  },
+  {
+    id: 'tunisie',
+    label: 'Tunisie',
+    description: 'Chaînes tunisiennes en direct : El Watania 1, El Watania 2, Mosaïque FM, StoryChannel',
+  },
+  {
+    id: 'qatar',
+    label: 'Qatar & Golfe',
+    description: 'Chaînes qataries et sportives du Golfe : Qatar TV 1 & 2, Al Rayyan, Al Jazeera, KTV Sport, Bahrain Sports',
+  },
+  {
+    id: 'algerie',
+    label: 'Algérie',
+    description: 'Chaînes algériennes en direct : TV2 Canal Algérie, AL24 News, Amou Yazid, Qudsuna',
+  },
+  {
+    id: 'maroc',
+    label: 'Maroc',
+    description: 'Chaînes marocaines en direct : Arryadia, 2M, 2M Monde, Al Maghribia, Medi1TV, Chada TV, MBC 5',
   },
   {
     id: 'football',
     label: 'Football',
-    description: 'Ligue des Champions, Premier League, LaLiga, Ligue 1, Serie A, Bundesliga',
+    description: 'Ligue des Champions, Europa League, Premier League, LaLiga, Ligue 1, Serie A, Bundesliga',
   },
   {
     id: 'channels',
-    label: 'Chaînes TV Sport',
-    description: 'FIFA+, Arryadia, Real Madrid TV, Oman Sports et chaînes HD continues',
+    label: 'Toutes les Chaînes',
+    description: 'Bouquet complet de toutes les chaînes TV incluses sur MK.tv',
   },
   {
     id: 'basketball',
     label: 'Basketball',
-    description: 'Rencontres NBA en direct et chaînes basketball',
+    description: 'Rencontres NBA en direct et chaîne basketball',
   },
   {
     id: 'tennis',

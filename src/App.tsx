@@ -3,10 +3,10 @@ import {
   Columns2,
   Flame,
   Gamepad2,
+  Globe,
   LayoutGrid,
   Maximize,
   Play,
-  Plus,
   Radio,
   RefreshCw,
   Search,
@@ -25,7 +25,6 @@ import { RealVideoPlayer } from './components/RealVideoPlayer';
 import { ChannelDirectoryPanel } from './components/ChannelDirectoryPanel';
 import { RealMatchCard } from './components/RealMatchCard';
 import { RealScheduleTable } from './components/RealScheduleTable';
-import { M3uImportModal } from './components/M3uImportModal';
 
 type MatchStatusFilter = 'all' | 'live' | 'upcoming' | 'finished';
 
@@ -50,7 +49,6 @@ export default function App() {
   const [cinemaWideMode, setCinemaWideMode] = useState(false);
   const [targetScreen, setTargetScreen] = useState<'primary' | 'secondary'>('primary');
   const [remindedIds, setRemindedIds] = useState<string[]>([]);
-  const [showImportModal, setShowImportModal] = useState(false);
 
   const playerSectionRef = useRef<HTMLElement | null>(null);
 
@@ -69,10 +67,7 @@ export default function App() {
       };
 
       if (chJson.channels && chJson.channels.length > 0) {
-        setChannels((prev) => {
-          const customOnes = prev.filter((c) => c.id.startsWith('custom-'));
-          return [...chJson.channels!, ...customOnes];
-        });
+        setChannels(chJson.channels);
         setPrimaryChannel((curr) => curr ?? chJson.channels![0]);
         setSecondaryChannel((curr) => curr ?? (chJson.channels![1] ?? chJson.channels![0]));
       }
@@ -109,6 +104,10 @@ export default function App() {
     const counts: Record<SportCategoryId, number> = {
       all: matches.length + channels.length,
       bein: channels.filter((c) => c.network === 'beIN SPORTS').length,
+      tunisie: channels.filter((c) => c.category === 'tunisie').length,
+      qatar: channels.filter((c) => c.category === 'qatar').length,
+      algerie: channels.filter((c) => c.category === 'algerie').length,
+      maroc: channels.filter((c) => c.category === 'maroc').length,
       football: 0,
       channels: channels.length,
       basketball: 0,
@@ -145,7 +144,16 @@ export default function App() {
   const filteredMatches = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     return matches.filter((m) => {
-      if (selectedCategory === 'bein' || selectedCategory === 'channels') return false;
+      if (
+        selectedCategory === 'bein' ||
+        selectedCategory === 'channels' ||
+        selectedCategory === 'tunisie' ||
+        selectedCategory === 'qatar' ||
+        selectedCategory === 'algerie' ||
+        selectedCategory === 'maroc'
+      ) {
+        return false;
+      }
       if (selectedCategory !== 'all' && m.category !== selectedCategory) return false;
       if (
         (selectedCategory === 'football' || selectedCategory === 'all') &&
@@ -205,12 +213,6 @@ export default function App() {
     playerSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  const handleImportedM3u = (imported: RealChannel[]) => {
-    setChannels((prev) => [...imported, ...prev]);
-    setPrimaryChannel(imported[0]);
-    setSelectedCategory('bein');
-  };
-
   const handleToggleReminder = (id: string) => {
     setRemindedIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
@@ -230,6 +232,11 @@ export default function App() {
         return <LayoutGrid className="w-3.5 h-3.5 shrink-0" />;
       case 'bein':
         return <Tv className="w-3.5 h-3.5 shrink-0" />;
+      case 'tunisie':
+      case 'qatar':
+      case 'algerie':
+      case 'maroc':
+        return <Globe className="w-3.5 h-3.5 shrink-0" />;
       case 'football':
         return <Trophy className="w-3.5 h-3.5 shrink-0" />;
       case 'channels':
@@ -416,7 +423,6 @@ export default function App() {
                   channels={channels}
                   activeChannelId={primaryChannel.id}
                   onSelectChannel={handleSelectChannel}
-                  onOpenImport={() => setShowImportModal(true)}
                 />
               </div>
             )
@@ -508,14 +514,6 @@ export default function App() {
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={() => setShowImportModal(true)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#11151E] border border-white/15 hover:border-white/35 text-xs font-bold text-white transition-colors whitespace-nowrap self-start md:self-auto"
-            >
-              <Plus className="w-3.5 h-3.5 text-rose-400" />
-              <span>Importer Playlist M3U</span>
-            </button>
           </div>
 
           {(selectedCategory === 'football' || selectedCategory === 'all') && (
@@ -545,7 +543,10 @@ export default function App() {
             <div id="chaines" className="space-y-3 scroll-mt-16">
               <div className="flex items-center justify-between gap-4">
                 <h2 className="font-display text-base sm:text-lg font-bold text-white">
-                  Chaînes beIN SPORTS & Direct TV
+                  {CATEGORIES.find((c) => c.id === selectedCategory)?.id === 'all'
+                    ? 'Chaînes beIN, Maghreb, Qatar & Sport TV'
+                    : CATEGORIES.find((c) => c.id === selectedCategory)?.label ??
+                      'Chaînes en Direct'}
                 </h2>
                 <span className="text-xs font-mono tabular-nums font-bold text-slate-400">
                   {filteredChannels.length} chaînes
@@ -697,7 +698,47 @@ export default function App() {
               }}
               className="hover:text-white transition-colors"
             >
-              Chaînes beIN
+              beIN SPORTS
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedCategory('tunisie');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="hover:text-white transition-colors"
+            >
+              Tunisie
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedCategory('qatar');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="hover:text-white transition-colors"
+            >
+              Qatar & Golfe
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedCategory('algerie');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="hover:text-white transition-colors"
+            >
+              Algérie
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedCategory('maroc');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="hover:text-white transition-colors"
+            >
+              Maroc
             </button>
             <button
               type="button"
@@ -709,36 +750,9 @@ export default function App() {
             >
               Football
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                setSelectedCategory('basketball');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              className="hover:text-white transition-colors"
-            >
-              NBA
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setSelectedCategory('tennis');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              className="hover:text-white transition-colors"
-            >
-              Tennis
-            </button>
           </div>
         </div>
       </footer>
-
-      {showImportModal && (
-        <M3uImportModal
-          onClose={() => setShowImportModal(false)}
-          onImported={handleImportedM3u}
-        />
-      )}
     </div>
   );
 }

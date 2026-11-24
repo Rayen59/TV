@@ -3,7 +3,6 @@ import Hls from 'hls.js';
 import {
   AlertTriangle,
   Check,
-  Link2,
   Loader2,
   Maximize2,
   Minimize2,
@@ -14,7 +13,6 @@ import {
   SlidersHorizontal,
   Volume2,
   VolumeX,
-  X,
 } from 'lucide-react';
 import type { RealChannel, RealChannelServer, RealMatch } from '../types/broadcast';
 
@@ -39,9 +37,6 @@ export function RealVideoPlayer({
   const hlsRef = useRef<Hls | null>(null);
 
   const [serverIndex, setServerIndex] = useState(0);
-  const [customStreamUrl, setCustomStreamUrl] = useState<string | null>(null);
-  const [showCustomModal, setShowCustomModal] = useState(false);
-  const [customInput, setCustomInput] = useState('');
 
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
@@ -60,7 +55,6 @@ export function RealVideoPlayer({
 
   useEffect(() => {
     setServerIndex(0);
-    setCustomStreamUrl(null);
     setStreamError(null);
     setFailoverNotice(null);
     setLevels([]);
@@ -76,7 +70,7 @@ export function RealVideoPlayer({
       hlsRef.current = null;
     }
 
-    const targetRawUrl = customStreamUrl || activeServer?.hlsUrl;
+    const targetRawUrl = activeServer?.hlsUrl;
     if (!targetRawUrl) {
       setStreamError('Aucun flux vidéo configuré pour cette chaîne.');
       setIsBuffering(false);
@@ -137,7 +131,7 @@ export function RealVideoPlayer({
           return;
         }
 
-        if (!customStreamUrl && serverIndex + 1 < channel.servers.length) {
+        if (serverIndex + 1 < channel.servers.length) {
           const nextIdx = serverIndex + 1;
           setFailoverNotice(
             `Basculement automatique vers ${channel.servers[nextIdx].label}...`
@@ -158,7 +152,7 @@ export function RealVideoPlayer({
         video.play().catch(() => setIsPlaying(false));
       };
       const onErr = () => {
-        if (!customStreamUrl && serverIndex + 1 < channel.servers.length) {
+        if (serverIndex + 1 < channel.servers.length) {
           setServerIndex((i) => i + 1);
         } else {
           setIsBuffering(false);
@@ -179,7 +173,7 @@ export function RealVideoPlayer({
         hlsRef.current = null;
       }
     };
-  }, [channel.id, channel.servers, serverIndex, customStreamUrl]);
+  }, [channel.id, channel.servers, serverIndex]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -224,14 +218,6 @@ export function RealVideoPlayer({
     } catch {
       // Ignore fullscreen denial
     }
-  };
-
-  const handleApplyCustomUrl = (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmed = customInput.trim();
-    if (!trimmed) return;
-    setCustomStreamUrl(trimmed);
-    setShowCustomModal(false);
   };
 
   return (
@@ -304,79 +290,17 @@ export function RealVideoPlayer({
         <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-3 bg-[#090B0F]/95 p-4 text-center">
           <AlertTriangle className="w-7 h-7 text-amber-400" />
           <p className="text-xs sm:text-sm font-bold text-white max-w-md">{streamError}</p>
-          <div className="flex flex-wrap items-center justify-center gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                setCustomStreamUrl(null);
-                setServerIndex((idx) => (idx + 1) % Math.max(1, channel.servers.length));
-                setStreamError(null);
-              }}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-rose-600 hover:bg-rose-500 text-xs font-bold text-white transition-colors"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-              <span>Changer de serveur</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowCustomModal(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-bold text-white transition-colors"
-            >
-              <Link2 className="w-3.5 h-3.5" />
-              <span>Lien M3U8</span>
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Custom M3U8 Modal */}
-      {showCustomModal && (
-        <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4">
-          <form
-            onSubmit={handleApplyCustomUrl}
-            className="w-full max-w-md bg-[#12161F] border border-white/15 rounded-xl p-4 space-y-3"
+          <button
+            type="button"
+            onClick={() => {
+              setServerIndex((idx) => (idx + 1) % Math.max(1, channel.servers.length));
+              setStreamError(null);
+            }}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-rose-600 hover:bg-rose-500 text-xs font-bold text-white transition-colors"
           >
-            <div className="flex items-center justify-between">
-              <h4 className="font-display font-bold text-sm text-white">
-                Lire un flux HLS (.m3u8) direct
-              </h4>
-              <button
-                type="button"
-                onClick={() => setShowCustomModal(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <input
-              type="url"
-              value={customInput}
-              onChange={(e) => setCustomInput(e.target.value)}
-              placeholder="https://.../playlist.m3u8"
-              required
-              className="w-full px-3 py-2 rounded-lg bg-[#090B0F] border border-white/15 text-xs font-semibold text-white placeholder:text-slate-500 focus:outline-none focus:border-rose-500"
-            />
-            <div className="flex items-center justify-end gap-2">
-              {customStreamUrl && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCustomStreamUrl(null);
-                    setShowCustomModal(false);
-                  }}
-                  className="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:bg-white/10"
-                >
-                  Revenir à la chaîne
-                </button>
-              )}
-              <button
-                type="submit"
-                className="px-4 py-1.5 rounded-lg text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white"
-              >
-                Lire le direct
-              </button>
-            </div>
-          </form>
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>Changer de serveur</span>
+          </button>
         </div>
       )}
 
@@ -442,12 +366,11 @@ export function RealVideoPlayer({
                     key={srv.id}
                     type="button"
                     onClick={() => {
-                      setCustomStreamUrl(null);
                       setServerIndex(idx);
                       setOpenMenu(null);
                     }}
                     className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-left text-xs transition-colors ${
-                      serverIndex === idx && !customStreamUrl
+                      serverIndex === idx
                         ? 'bg-rose-600/25 text-white'
                         : 'text-slate-200 hover:bg-white/10'
                     }`}
@@ -456,7 +379,7 @@ export function RealVideoPlayer({
                       <div className="font-bold truncate">{srv.label}</div>
                       <div className="text-[11px] text-slate-400">{srv.quality}</div>
                     </div>
-                    {serverIndex === idx && !customStreamUrl && (
+                    {serverIndex === idx && (
                       <Check className="w-3.5 h-3.5 text-rose-400 shrink-0" />
                     )}
                   </button>
@@ -512,21 +435,6 @@ export function RealVideoPlayer({
               </div>
             )}
           </div>
-
-          {!compact && (
-            <button
-              type="button"
-              onClick={() => {
-                setOpenMenu(null);
-                setShowCustomModal(true);
-              }}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white/15 hover:bg-white/25 text-xs font-bold text-white transition-colors whitespace-nowrap"
-              title="Lire un lien M3U8"
-            >
-              <Link2 className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">M3U8</span>
-            </button>
-          )}
 
           <button
             type="button"

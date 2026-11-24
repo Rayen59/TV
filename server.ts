@@ -10,7 +10,7 @@ const __dirname = path.dirname(__filename);
 const PORT = Number(process.env.PORT) || 3000;
 
 /* ============================================================================
-   SSRF-Safe URL & IP Validation for HLS & M3U Proxying
+   SSRF-Safe URL & IP Validation for HLS Proxying
    ============================================================================ */
 
 function isPrivateOrReservedIp(ip: string): boolean {
@@ -18,14 +18,14 @@ function isPrivateOrReservedIp(ip: string): boolean {
     const parts = ip.split('.').map(Number);
     if (parts.length !== 4 || parts.some((n) => Number.isNaN(n))) return true;
     const [a, b] = parts;
-    if (a === 0) return true; // 0.0.0.0/8
-    if (a === 10) return true; // 10.0.0.0/8
-    if (a === 127) return true; // 127.0.0.0/8 loopback
-    if (a === 169 && b === 254) return true; // 169.254.0.0/16 link-local / metadata
-    if (a === 172 && b >= 16 && b <= 31) return true; // 172.16.0.0/12
-    if (a === 192 && b === 168) return true; // 192.168.0.0/16
-    if (a === 100 && b >= 64 && b <= 127) return true; // 100.64.0.0/10 CGNAT
-    if (a >= 224) return true; // multicast & reserved
+    if (a === 0) return true;
+    if (a === 10) return true;
+    if (a === 127) return true;
+    if (a === 169 && b === 254) return true;
+    if (a === 172 && b >= 16 && b <= 31) return true;
+    if (a === 192 && b === 168) return true;
+    if (a === 100 && b >= 64 && b <= 127) return true;
+    if (a >= 224) return true;
     return false;
   }
 
@@ -86,7 +86,10 @@ async function validateSafePublicUrl(rawUrl: string): Promise<URL> {
   return parsed;
 }
 
-async function safeFetchWithRedirects(rawUrl: string, maxRedirects = 4): Promise<{ response: globalThis.Response; finalUrl: string }> {
+async function safeFetchWithRedirects(
+  rawUrl: string,
+  maxRedirects = 4
+): Promise<{ response: globalThis.Response; finalUrl: string }> {
   let currentUrl = rawUrl;
   for (let i = 0; i <= maxRedirects; i++) {
     const safeUrl = await validateSafePublicUrl(currentUrl);
@@ -99,7 +102,8 @@ async function safeFetchWithRedirects(rawUrl: string, maxRedirects = 4): Promise
         redirect: 'manual',
         signal: controller.signal,
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
           Accept: '*/*',
         },
       });
@@ -122,7 +126,7 @@ async function safeFetchWithRedirects(rawUrl: string, maxRedirects = 4): Promise
 }
 
 /* ============================================================================
-   Real Verified Live Sports Channels (beIN SPORTS & International Sports TV)
+   Curated Verified Live TV & Sports Channels (beIN, TN, QA, DZ, MA, Global)
    ============================================================================ */
 
 export interface RealChannelServer {
@@ -136,8 +140,24 @@ export interface RealChannel {
   id: string;
   number: string;
   name: string;
-  network: 'beIN SPORTS' | 'Football TV' | 'Tennis & Auto' | 'NBA & Combat';
-  category: 'channels' | 'football' | 'basketball' | 'tennis' | 'motorsport' | 'combat';
+  network:
+    | 'beIN SPORTS'
+    | 'Tunisie'
+    | 'Qatar & Golfe'
+    | 'Algérie'
+    | 'Maroc'
+    | 'Sport International';
+  category:
+    | 'tunisie'
+    | 'qatar'
+    | 'algerie'
+    | 'maroc'
+    | 'channels'
+    | 'football'
+    | 'basketball'
+    | 'tennis'
+    | 'motorsport'
+    | 'combat';
   language: string;
   quality: '1080p60' | '720p60';
   description: string;
@@ -146,6 +166,7 @@ export interface RealChannel {
 }
 
 const VERIFIED_CHANNELS: RealChannel[] = [
+  // === beIN SPORTS ===
   {
     id: 'bein-xtra-1',
     number: 'beIN X1',
@@ -154,7 +175,7 @@ const VERIFIED_CHANNELS: RealChannel[] = [
     category: 'channels',
     language: 'Anglais / Multi',
     quality: '1080p60',
-    description: 'Chaîne officielle beIN SPORTS XTRA en direct continu 24/7 — matchs, résumés et émissions.',
+    description: 'Chaîne officielle beIN SPORTS XTRA en direct 24/7 — matchs, résumés et émissions.',
     isLiveStreamVerified: true,
     servers: [
       {
@@ -204,7 +225,7 @@ const VERIFIED_CHANNELS: RealChannel[] = [
     category: 'channels',
     language: 'Espagnol',
     quality: '1080p60',
-    description: 'Chaîne officielle beIN SPORTS XTRA en espagnol — LaLiga, Copa Libertadores et magazines.',
+    description: 'Chaîne officielle beIN SPORTS XTRA en espagnol — LaLiga, Copa Libertadores.',
     isLiveStreamVerified: true,
     servers: [
       {
@@ -221,15 +242,553 @@ const VERIFIED_CHANNELS: RealChannel[] = [
       },
     ],
   },
+
+  // === TUNISIE ===
+  {
+    id: 'tn-watania-1',
+    number: 'TN 01',
+    name: 'El Watania 1 (الوطنية 1)',
+    network: 'Tunisie',
+    category: 'tunisie',
+    language: 'Arabe / Tunisie',
+    quality: '1080p60',
+    description: 'Télévision Tunisienne Nationale 1 en direct — Ligue 1 tunisienne, infos et programmes.',
+    isLiveStreamVerified: true,
+    servers: [
+      {
+        id: 'tn1-s1',
+        label: 'Serveur Principal · TanitWeb HD',
+        quality: '1080p60',
+        hlsUrl: 'https://sw1.tanitweb.net/TunisiaTV/_definst_/watania1/chunklist.m3u8',
+      },
+      {
+        id: 'tn1-s2',
+        label: 'Serveur Secours · Watania 2',
+        quality: '1080p60',
+        hlsUrl: 'https://sw1.tanitweb.net/TunisiaTV/_definst_/watania2/playlist.m3u8?DVR',
+      },
+    ],
+  },
+  {
+    id: 'tn-watania-2',
+    number: 'TN 02',
+    name: 'El Watania 2 (الوطنية 2)',
+    network: 'Tunisie',
+    category: 'tunisie',
+    language: 'Arabe / Tunisie',
+    quality: '1080p60',
+    description: 'Télévision Tunisienne 2 en direct — sport tunisien, football et handball.',
+    isLiveStreamVerified: true,
+    servers: [
+      {
+        id: 'tn2-s1',
+        label: 'Serveur Principal · TanitWeb DVR',
+        quality: '1080p60',
+        hlsUrl: 'https://sw1.tanitweb.net/TunisiaTV/_definst_/watania2/playlist.m3u8?DVR',
+      },
+      {
+        id: 'tn2-s2',
+        label: 'Serveur Secours · Watania 1',
+        quality: '1080p60',
+        hlsUrl: 'https://sw1.tanitweb.net/TunisiaTV/_definst_/watania1/chunklist.m3u8',
+      },
+    ],
+  },
+  {
+    id: 'tn-mosaique',
+    number: 'TN 03',
+    name: 'Mosaïque FM TV',
+    network: 'Tunisie',
+    category: 'tunisie',
+    language: 'Arabe / Français',
+    quality: '1080p60',
+    description: 'Plateau vidéo direct Mosaïque FM Tunisie — débats sportifs, actualités et émissions.',
+    isLiveStreamVerified: true,
+    servers: [
+      {
+        id: 'tnm-s1',
+        label: 'Serveur Principal · Studio Live 1080p',
+        quality: '1080p60',
+        hlsUrl: 'https://webcam.mosaiquefm.net/mosatv/_definst_/studio/playlist.m3u8?DVR',
+      },
+    ],
+  },
+  {
+    id: 'tn-story',
+    number: 'TN 04',
+    name: 'StoryChannel TV Tunisie',
+    network: 'Tunisie',
+    category: 'tunisie',
+    language: 'Arabe / Tunisie',
+    quality: '720p60',
+    description: 'Chaîne maghrébine et tunisienne en direct HD.',
+    isLiveStreamVerified: true,
+    servers: [
+      {
+        id: 'tns-s1',
+        label: 'Serveur Principal · CDN 720p',
+        quality: '720p60',
+        hlsUrl: 'https://136044159.r.cdnsun.net/storychannel.m3u8',
+      },
+    ],
+  },
+
+  // === QATAR & GOLFE (Al Kass / Qatar TV / Al Rayyan / KTV Sport / Bahrain Sport) ===
+  {
+    id: 'qa-qtv-1',
+    number: 'QA 01',
+    name: 'Qatar TV 1 (تلفزيون قطر)',
+    network: 'Qatar & Golfe',
+    category: 'qatar',
+    language: 'Arabe / Qatar',
+    quality: '1080p60',
+    description: 'Chaîne nationale officielle Qatar Television 1 en 1080p.',
+    isLiveStreamVerified: true,
+    servers: [
+      {
+        id: 'qtv1-s1',
+        label: 'Serveur Principal · KwikMotion 1080p',
+        quality: '1080p60',
+        hlsUrl: 'https://live.kwikmotion.com/qtv1live/qtv1.smil/playlist.m3u8',
+      },
+      {
+        id: 'qtv1-s2',
+        label: 'Serveur Secours · Qatar TV 2',
+        quality: '1080p60',
+        hlsUrl: 'https://live.kwikmotion.com/qtv2live/qtv2.smil/playlist.m3u8',
+      },
+    ],
+  },
+  {
+    id: 'qa-qtv-2',
+    number: 'QA 02',
+    name: 'Qatar TV 2 (تلفزيون قطر 2)',
+    network: 'Qatar & Golfe',
+    category: 'qatar',
+    language: 'Arabe / Qatar',
+    quality: '1080p60',
+    description: 'Deuxième chaîne officielle du Qatar en direct haute définition 1080p.',
+    isLiveStreamVerified: true,
+    servers: [
+      {
+        id: 'qtv2-s1',
+        label: 'Serveur Principal · KwikMotion 1080p',
+        quality: '1080p60',
+        hlsUrl: 'https://live.kwikmotion.com/qtv2live/qtv2.smil/playlist.m3u8',
+      },
+    ],
+  },
+  {
+    id: 'qa-alrayyan',
+    number: 'QA 03',
+    name: 'Al Rayyan TV (الريان)',
+    network: 'Qatar & Golfe',
+    category: 'qatar',
+    language: 'Arabe / Qatar',
+    quality: '1080p60',
+    description: 'Chaîne qatarie Al Rayyan en direct 1080p — sports traditionnels, événements et Qatar Stars.',
+    isLiveStreamVerified: true,
+    servers: [
+      {
+        id: 'ray1-s1',
+        label: 'Serveur Principal · Vidgyor 1080p',
+        quality: '1080p60',
+        hlsUrl: 'https://alrayyancdn.vidgyor.com/pub-noalrayy3pwz0l/liveabr/playlist_dvr.m3u8',
+      },
+      {
+        id: 'ray1-s2',
+        label: 'Serveur Secours · Al Rayyan 2',
+        quality: '1080p60',
+        hlsUrl: 'https://alrayyancdn.vidgyor.com/pub-nooldraybinbdh/liveabr/playlist_dvr.m3u8',
+      },
+    ],
+  },
+  {
+    id: 'qa-alrayyan-2',
+    number: 'QA 04',
+    name: 'Al Rayyan Heritage TV',
+    network: 'Qatar & Golfe',
+    category: 'qatar',
+    language: 'Arabe / Qatar',
+    quality: '1080p60',
+    description: 'Deuxième flux officiel Al Rayyan Qatar en 1080p.',
+    isLiveStreamVerified: true,
+    servers: [
+      {
+        id: 'ray2-s1',
+        label: 'Serveur Principal · Vidgyor 1080p',
+        quality: '1080p60',
+        hlsUrl: 'https://alrayyancdn.vidgyor.com/pub-nooldraybinbdh/liveabr/playlist_dvr.m3u8',
+      },
+    ],
+  },
+  {
+    id: 'qa-aljazeera',
+    number: 'QA 05',
+    name: 'Al Jazeera Arabic (الجزيرة)',
+    network: 'Qatar & Golfe',
+    category: 'qatar',
+    language: 'Arabe / Qatar',
+    quality: '1080p60',
+    description: 'Chaîne Al Jazeera Qatar en direct 1080p continu 24/7.',
+    isLiveStreamVerified: true,
+    servers: [
+      {
+        id: 'aja-s1',
+        label: 'Serveur Principal · AJA 1080p',
+        quality: '1080p60',
+        hlsUrl: 'https://live-hls-apps-aja-fa.getaj.net/AJA/index.m3u8',
+      },
+      {
+        id: 'aja-s2',
+        label: 'Serveur Secours · Al Jazeera 2',
+        quality: '1080p60',
+        hlsUrl: 'https://live-hls-web-aja2-gcp.thehlive.com/AJA2/index.m3u8',
+      },
+    ],
+  },
+  {
+    id: 'qa-qtv-quran',
+    number: 'QA 06',
+    name: 'Qatar TV Quran (قطر للقرآن)',
+    network: 'Qatar & Golfe',
+    category: 'qatar',
+    language: 'Arabe / Qatar',
+    quality: '1080p60',
+    description: 'Chaîne Qatar TV Coran en direct Akamai 1080p.',
+    isLiveStreamVerified: true,
+    servers: [
+      {
+        id: 'qqr-s1',
+        label: 'Serveur Akamai 1080p',
+        quality: '1080p60',
+        hlsUrl: 'https://qatartv.akamaized.net/hls/live/20000612/qtvquran/master.m3u8',
+      },
+    ],
+  },
+  {
+    id: 'qa-ktv-sport',
+    number: 'GS 01',
+    name: 'KTV Sport HD (الكويت الرياضية)',
+    network: 'Qatar & Golfe',
+    category: 'qatar',
+    language: 'Arabe / Golfe',
+    quality: '1080p60',
+    description: 'Chaîne sportive du Golfe en direct 1080p — compétitions arabes et asiatiques.',
+    isLiveStreamVerified: true,
+    servers: [
+      {
+        id: 'ktv1-s1',
+        label: 'Serveur Principal · KTV Sport 1080p',
+        quality: '1080p60',
+        hlsUrl: 'https://kwtspta.cdn.mangomolo.com/sp/smil:sp.stream.smil/chunklist.m3u8',
+      },
+      {
+        id: 'ktv1-s2',
+        label: 'Serveur Secours · KTV Sport Plus',
+        quality: '1080p60',
+        hlsUrl: 'https://kwtsplta.cdn.mangomolo.com/spl/smil:spl.stream.smil/chunklist.m3u8',
+      },
+    ],
+  },
+  {
+    id: 'qa-ktv-sport-plus',
+    number: 'GS 02',
+    name: 'KTV Sport Plus HD',
+    network: 'Qatar & Golfe',
+    category: 'qatar',
+    language: 'Arabe / Golfe',
+    quality: '1080p60',
+    description: 'Deuxième chaîne sportive du Golfe en 1080p.',
+    isLiveStreamVerified: true,
+    servers: [
+      {
+        id: 'ktv2-s1',
+        label: 'Serveur Principal · KTV Plus 1080p',
+        quality: '1080p60',
+        hlsUrl: 'https://kwtsplta.cdn.mangomolo.com/spl/smil:spl.stream.smil/chunklist.m3u8',
+      },
+    ],
+  },
+  {
+    id: 'qa-bahrain-1',
+    number: 'GS 03',
+    name: 'Bahrain Sports 1 & 2',
+    network: 'Qatar & Golfe',
+    category: 'qatar',
+    language: 'Arabe / Golfe',
+    quality: '720p60',
+    description: 'Chaînes sportives du Bahreïn avec basculement entre canal 1 et canal 2.',
+    isLiveStreamVerified: true,
+    servers: [
+      {
+        id: 'bh1-s1',
+        label: 'Bahrain Sports 1',
+        quality: '720p60',
+        hlsUrl: 'https://5c7b683162943.streamlock.net/live/ngrp:sportsone_all/playlist.m3u8',
+      },
+      {
+        id: 'bh1-s2',
+        label: 'Bahrain Sports 2',
+        quality: '720p60',
+        hlsUrl: 'https://5c7b683162943.streamlock.net/live/ngrp:bahrainsportstwo_all/playlist.m3u8',
+      },
+    ],
+  },
+  {
+    id: 'qa-oman-sport',
+    number: 'GS 04',
+    name: 'Oman Sports TV 1080p',
+    network: 'Qatar & Golfe',
+    category: 'qatar',
+    language: 'Arabe / Golfe',
+    quality: '1080p60',
+    description: 'Chaîne sportive d’Oman en haute définition 1080p.',
+    isLiveStreamVerified: true,
+    servers: [
+      {
+        id: 'om-s1',
+        label: 'Serveur Principal · Oman Sports',
+        quality: '1080p60',
+        hlsUrl: 'https://partneta.cdn.mgmlcdn.com/omsport/smil:omsport.stream.smil/chunklist.m3u8',
+      },
+    ],
+  },
+
+  // === ALGÉRIE ===
+  {
+    id: 'dz-tv2',
+    number: 'DZ 01',
+    name: 'TV2 Canal Algérie (كنال ألجيري)',
+    network: 'Algérie',
+    category: 'algerie',
+    language: 'Français / Arabe',
+    quality: '1080p60',
+    description: 'Chaîne nationale algérienne Canal Algérie en direct HD — actualités, sport et magazines.',
+    isLiveStreamVerified: true,
+    servers: [
+      {
+        id: 'dz2-s1',
+        label: 'Serveur Principal · Canal Algérie HD',
+        quality: '1080p60',
+        hlsUrl: 'http://185.9.2.18/chid_347/index.m3u8',
+      },
+    ],
+  },
+  {
+    id: 'dz-al24',
+    number: 'DZ 02',
+    name: 'AL24 News Algérie',
+    network: 'Algérie',
+    category: 'algerie',
+    language: 'Arabe / Français',
+    quality: '720p60',
+    description: 'Chaîne d’information internationale algérienne AL24 News en direct continu.',
+    isLiveStreamVerified: true,
+    servers: [
+      {
+        id: 'al24-s1',
+        label: 'Serveur Principal · EasyBroadcast',
+        quality: '720p60',
+        hlsUrl: 'https://cdn.live.easybroadcast.io/abr_corp/66_al24_u4yga6h/corp/66_al24_u4yga6h_240p/chunks.m3u8',
+      },
+    ],
+  },
+  {
+    id: 'dz-amou-yazid',
+    number: 'DZ 03',
+    name: 'Amou Yazid TV (عمو يزيد)',
+    network: 'Algérie',
+    category: 'algerie',
+    language: 'Arabe / Algérie',
+    quality: '720p60',
+    description: 'Chaîne algérienne familiale Amou Yazid TV en direct.',
+    isLiveStreamVerified: true,
+    servers: [
+      {
+        id: 'ay-s1',
+        label: 'Serveur Principal · MKStream',
+        quality: '720p60',
+        hlsUrl: 'http://mkstream.servehttp.com:1940/AmouYazid/ay1/playlist.m3u8',
+      },
+    ],
+  },
+  {
+    id: 'dz-qudsuna',
+    number: 'DZ 04',
+    name: 'Qudsuna TV Algérie',
+    network: 'Algérie',
+    category: 'algerie',
+    language: 'Arabe / Algérie',
+    quality: '1080p60',
+    description: 'Chaîne algérienne Qudsuna TV en direct continu.',
+    isLiveStreamVerified: true,
+    servers: [
+      {
+        id: 'qds-s1',
+        label: 'Serveur Principal · CDN New',
+        quality: '1080p60',
+        hlsUrl: 'https://qudsunatv-live.cdnnew.com/qudsunatv/qudsuna.m3u8',
+      },
+    ],
+  },
+
+  // === MAROC ===
+  {
+    id: 'ma-arryadia',
+    number: 'MA 01',
+    name: 'Arryadia Sport (الرياضية)',
+    network: 'Maroc',
+    category: 'maroc',
+    language: 'Arabe / Français',
+    quality: '720p60',
+    description: 'Chaîne sportive marocaine Arryadia en direct — Botola Pro, CAF et compétitions nationales.',
+    isLiveStreamVerified: true,
+    servers: [
+      {
+        id: 'arr-s1',
+        label: 'Serveur Principal · Arryadia Direct',
+        quality: '720p60',
+        hlsUrl: 'http://149.100.11.252:8000/play/a065/index.m3u8',
+      },
+      {
+        id: 'arr-s2',
+        label: 'Serveur Secours · 2M Monde',
+        quality: '1080p60',
+        hlsUrl: 'https://r.eu.cdn-redge.media/livehls/oeu/mt/live/2m_monde/live.livx/playlist.m3u8',
+      },
+    ],
+  },
+  {
+    id: 'ma-2m-monde',
+    number: 'MA 02',
+    name: '2M Monde HD (دوزيم)',
+    network: 'Maroc',
+    category: 'maroc',
+    language: 'Arabe / Français',
+    quality: '1080p60',
+    description: 'Chaîne marocaine 2M en direct HD avec 3 serveurs redondants.',
+    isLiveStreamVerified: true,
+    servers: [
+      {
+        id: '2mm-s1',
+        label: 'Serveur 1 · 2M Monde HD',
+        quality: '1080p60',
+        hlsUrl: 'https://r.eu.cdn-redge.media/livehls/oeu/mt/live/2m_monde/live.livx/playlist.m3u8',
+      },
+      {
+        id: '2mm-s2',
+        label: 'Serveur 2 · 2M Monde +1 1080p',
+        quality: '1080p60',
+        hlsUrl: 'https://d2qh3gh0k5vp3v.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-n6pess5lwbghr/2M_ES.m3u8',
+      },
+      {
+        id: '2mm-s3',
+        label: 'Serveur 3 · 2M National',
+        quality: '720p60',
+        hlsUrl: 'http://185.9.2.18/chid_218/index.m3u8',
+      },
+    ],
+  },
+  {
+    id: 'ma-maghribia',
+    number: 'MA 03',
+    name: 'Al Maghribia (المغربية)',
+    network: 'Maroc',
+    category: 'maroc',
+    language: 'Arabe / Maroc',
+    quality: '1080p60',
+    description: 'Chaîne nationale marocaine Al Maghribia (SNRT) en 1080p.',
+    isLiveStreamVerified: true,
+    servers: [
+      {
+        id: 'mag-s1',
+        label: 'Serveur Principal · Al Maghribia',
+        quality: '1080p60',
+        hlsUrl: 'http://185.9.2.18/chid_205/index.m3u8',
+      },
+    ],
+  },
+  {
+    id: 'ma-medi1-maghreb',
+    number: 'MA 04',
+    name: 'Medi1TV Maghreb (ميدي 1)',
+    network: 'Maroc',
+    category: 'maroc',
+    language: 'Arabe / Français',
+    quality: '1080p60',
+    description: 'Chaîne Medi1TV Maghreb en direct 1080p — info, sport et culture.',
+    isLiveStreamVerified: true,
+    servers: [
+      {
+        id: 'm1m-s1',
+        label: 'Medi1TV Maghreb 1080p',
+        quality: '1080p60',
+        hlsUrl: 'https://cdn.live.easybroadcast.io/abr_corp/83_medi1tv-maghreb_jnbspmg/playlist.m3u8',
+      },
+      {
+        id: 'm1m-s2',
+        label: 'Medi1TV Arabic 1080p',
+        quality: '1080p60',
+        hlsUrl: 'https://cdn.live.easybroadcast.io/abr_corp/83_medi1tv-arabic_g90v4ec/playlist.m3u8',
+      },
+      {
+        id: 'm1m-s3',
+        label: 'Medi1TV Afrique 1080p',
+        quality: '1080p60',
+        hlsUrl: 'https://cdn.live.easybroadcast.io/abr_corp/83_medi1tv-afrique_tm7tu45/playlist.m3u8',
+      },
+    ],
+  },
+  {
+    id: 'ma-chada',
+    number: 'MA 05',
+    name: 'Chada TV (شدى تيفي)',
+    network: 'Maroc',
+    category: 'maroc',
+    language: 'Arabe / Maroc',
+    quality: '720p60',
+    description: 'Chaîne marocaine Chada TV en direct 720p.',
+    isLiveStreamVerified: true,
+    servers: [
+      {
+        id: 'chd-s1',
+        label: 'Serveur Principal · Infomaniak',
+        quality: '720p60',
+        hlsUrl: 'https://edge13.vedge.infomaniak.com/livecast/ik:chadatv/manifest.m3u8',
+      },
+    ],
+  },
+  {
+    id: 'ma-mbc5',
+    number: 'MA 06',
+    name: 'MBC 5 Maghreb (إم بي سي 5)',
+    network: 'Maroc',
+    category: 'maroc',
+    language: 'Arabe / Maghreb',
+    quality: '1080p60',
+    description: 'Chaîne MBC 5 dédiée au Maghreb en direct 1080p.',
+    isLiveStreamVerified: true,
+    servers: [
+      {
+        id: 'mbc5-s1',
+        label: 'Serveur Principal · MBC 5 1080p',
+        quality: '1080p60',
+        hlsUrl: 'https://shd-gcp-live.edgenextcdn.net/live/bitmovin-mbc-5/ee6b000cee0629411b666ab26cb13e9b/index.m3u8',
+      },
+    ],
+  },
+
+  // === SPORT INTERNATIONAL ===
   {
     id: 'fifa-plus-fr',
-    number: 'CH 04',
+    number: 'SP 01',
     name: 'FIFA+ Français HD',
-    network: 'Football TV',
+    network: 'Sport International',
     category: 'football',
     language: 'Français',
     quality: '720p60',
-    description: 'Chaîne officielle FIFA+ en français — matchs en direct, coupes et archives officielles.',
+    description: 'Chaîne officielle FIFA+ en français — matchs en direct, coupes et archives.',
     isLiveStreamVerified: true,
     servers: [
       {
@@ -240,7 +799,7 @@ const VERIFIED_CHANNELS: RealChannel[] = [
       },
       {
         id: 'ffr-s2',
-        label: 'Serveur 2 · FIFA+ Global 1080p',
+        label: 'Serveur 2 · FIFA+ World 1080p',
         quality: '1080p60',
         hlsUrl: 'https://95cedebd.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/Vml6aW9fRklGQVBsdXNFbmdsaXNoX0hMUw/playlist.m3u8',
       },
@@ -248,13 +807,13 @@ const VERIFIED_CHANNELS: RealChannel[] = [
   },
   {
     id: 'fifa-plus-en',
-    number: 'CH 05',
+    number: 'SP 02',
     name: 'FIFA+ World 1080p',
-    network: 'Football TV',
+    network: 'Sport International',
     category: 'football',
     language: 'Anglais',
     quality: '1080p60',
-    description: 'Flux international FIFA+ Full HD 1080p — compétitions mondiales et tournois FIFA.',
+    description: 'Flux international FIFA+ Full HD 1080p — compétitions mondiales FIFA.',
     isLiveStreamVerified: true,
     servers: [
       {
@@ -272,79 +831,10 @@ const VERIFIED_CHANNELS: RealChannel[] = [
     ],
   },
   {
-    id: 'arryadia-live',
-    number: 'CH 06',
-    name: 'Arryadia Live HD (SNRT)',
-    network: 'Football TV',
-    category: 'football',
-    language: 'Arabe / Français',
-    quality: '720p60',
-    description: 'Chaîne sportive Arryadia en direct — Botola Pro, CAF et compétitions africaines.',
-    isLiveStreamVerified: true,
-    servers: [
-      {
-        id: 'arr-s1',
-        label: 'Serveur Principal · Arryadia',
-        quality: '720p60',
-        hlsUrl: 'http://149.100.11.252:8000/play/a065/index.m3u8',
-      },
-      {
-        id: 'arr-s2',
-        label: 'Serveur Secours · Oman Sports HD',
-        quality: '1080p60',
-        hlsUrl: 'https://partneta.cdn.mgmlcdn.com/omsport/smil:omsport.stream.smil/chunklist.m3u8',
-      },
-    ],
-  },
-  {
-    id: 'real-madrid-tv',
-    number: 'CH 07',
-    name: 'Real Madrid TV',
-    network: 'Football TV',
-    category: 'football',
-    language: 'Anglais / Espagnol',
-    quality: '720p60',
-    description: 'Chaîne officielle du Real Madrid en direct — entraînements, conférences et matchs.',
-    isLiveStreamVerified: true,
-    servers: [
-      {
-        id: 'rm-s1',
-        label: 'Serveur Principal · RMTV',
-        quality: '720p60',
-        hlsUrl: 'http://88.212.15.50/live/real_madrid_tv/index.m3u8',
-      },
-      {
-        id: 'rm-s2',
-        label: 'Serveur Secours · beIN XTRA ES',
-        quality: '1080p60',
-        hlsUrl: 'https://dc1644a9jazgj.cloudfront.net/beIN_Sports_Xtra_Espanol.m3u8',
-      },
-    ],
-  },
-  {
-    id: 'oman-sports-hd',
-    number: 'CH 08',
-    name: 'Oman Sports TV 1080p',
-    network: 'Football TV',
-    category: 'football',
-    language: 'Arabe',
-    quality: '1080p60',
-    description: 'Chaîne sportive arabe haute définition — football régional et compétitions asiatiques.',
-    isLiveStreamVerified: true,
-    servers: [
-      {
-        id: 'om-s1',
-        label: 'Serveur Principal · Oman Sports',
-        quality: '1080p60',
-        hlsUrl: 'https://partneta.cdn.mgmlcdn.com/omsport/smil:omsport.stream.smil/chunklist.m3u8',
-      },
-    ],
-  },
-  {
     id: 'nba-live-hd',
-    number: 'CH 09',
+    number: 'SP 03',
     name: 'NBA Basket Live',
-    network: 'NBA & Combat',
+    network: 'Sport International',
     category: 'basketball',
     language: 'Anglais / Multi',
     quality: '720p60',
@@ -367,9 +857,9 @@ const VERIFIED_CHANNELS: RealChannel[] = [
   },
   {
     id: 'tennis-channel-1',
-    number: 'CH 10',
+    number: 'SP 04',
     name: 'Tennis Channel 1080p',
-    network: 'Tennis & Auto',
+    network: 'Sport International',
     category: 'tennis',
     language: 'Anglais',
     quality: '1080p60',
@@ -392,11 +882,11 @@ const VERIFIED_CHANNELS: RealChannel[] = [
   },
   {
     id: 'redbull-motor-hd',
-    number: 'CH 11',
+    number: 'SP 05',
     name: 'Red Bull TV & Motorsport 1080p',
-    network: 'Tennis & Auto',
+    network: 'Sport International',
     category: 'motorsport',
-    language: 'Anglais / International',
+    language: 'International',
     quality: '1080p60',
     description: 'Sports mécaniques, rallye WRC, F1 magazines et compétitions extrêmes en 1080p.',
     isLiveStreamVerified: true,
@@ -423,9 +913,9 @@ const VERIFIED_CHANNELS: RealChannel[] = [
   },
   {
     id: 'combat-mma-hd',
-    number: 'CH 12',
+    number: 'SP 06',
     name: 'PFL MMA & DAZN Combat',
-    network: 'NBA & Combat',
+    network: 'Sport International',
     category: 'combat',
     language: 'Anglais',
     quality: '1080p60',
@@ -655,7 +1145,6 @@ async function fetchRealMatches(): Promise<RealMatchDTO[]> {
           const broadcasts =
             comp?.broadcasts?.flatMap((b) => b.names ?? []).filter(Boolean) ?? [];
 
-          // Assign realistic beIN SPORTS channel numbers across concurrent matches
           const beinNum = ((index % 6) + 1).toString();
           const beinChannel =
             cfg.category === 'football'
@@ -709,7 +1198,6 @@ async function fetchRealMatches(): Promise<RealMatchDTO[]> {
     }
   }
 
-  // Sort: live first, then upcoming (nearest kickoff), then finished
   const orderWeight = { live: 0, upcoming: 1, finished: 2 };
   allMatches.sort((a, b) => {
     const wDiff = orderWeight[a.status] - orderWeight[b.status];
@@ -722,75 +1210,12 @@ async function fetchRealMatches(): Promise<RealMatchDTO[]> {
 }
 
 /* ============================================================================
-   M3U Playlist Parser
-   ============================================================================ */
-
-function parseM3uText(content: string): RealChannel[] {
-  const lines = content.split(/\r?\n/);
-  const parsed: RealChannel[] = [];
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
-    if (!line.startsWith('#EXTINF')) continue;
-
-    const name = line.split(',').pop()?.trim() || `Chaîne ${parsed.length + 1}`;
-    let streamUrl = '';
-    for (let j = i + 1; j < Math.min(i + 5, lines.length); j++) {
-      const candidate = lines[j].trim();
-      if (candidate && !candidate.startsWith('#')) {
-        streamUrl = candidate;
-        break;
-      }
-    }
-
-    if (!streamUrl.startsWith('http://') && !streamUrl.startsWith('https://')) {
-      continue;
-    }
-
-    const lower = name.toLowerCase();
-    const network: RealChannel['network'] = lower.includes('bein')
-      ? 'beIN SPORTS'
-      : lower.includes('nba') || lower.includes('ufc') || lower.includes('mma')
-      ? 'NBA & Combat'
-      : lower.includes('tennis') || lower.includes('f1') || lower.includes('motor')
-      ? 'Tennis & Auto'
-      : 'Football TV';
-
-    parsed.push({
-      id: `custom-${parsed.length + 1}-${Date.now()}`,
-      number: `M3U ${String(parsed.length + 1).padStart(2, '0')}`,
-      name,
-      network,
-      category: 'channels',
-      language: 'Flux Importé',
-      quality: lower.includes('1080') || lower.includes('fhd') || lower.includes('4k') ? '1080p60' : '720p60',
-      description: `Chaîne importée depuis votre playlist M3U — ${name}`,
-      isLiveStreamVerified: true,
-      servers: [
-        {
-          id: `m3u-srv-${parsed.length + 1}`,
-          label: 'Flux Playlist Importée',
-          quality: 'HD',
-          hlsUrl: streamUrl,
-        },
-      ],
-    });
-
-    if (parsed.length >= 60) break;
-  }
-
-  return parsed;
-}
-
-/* ============================================================================
    Express Server Bootstrap
    ============================================================================ */
 
 async function startServer() {
   const app = express();
-  app.use(express.json({ limit: '1mb' }));
 
-  // 1. Live Real Matches API
   app.get('/api/matches', async (_req: Request, res: Response) => {
     try {
       const matches = await fetchRealMatches();
@@ -807,48 +1232,12 @@ async function startServer() {
     }
   });
 
-  // 2. Real Verified Sports & beIN Channels API
   app.get('/api/channels', (_req: Request, res: Response) => {
     res.json({
       channels: VERIFIED_CHANNELS,
     });
   });
 
-  // 3. M3U / IPTV Playlist Importer (safe SSRF-checked URL or pasted text)
-  app.post('/api/parse-m3u', async (req: Request, res: Response) => {
-    try {
-      const { url, content } = req.body as { url?: string; content?: string };
-      let m3uText = '';
-
-      if (typeof content === 'string' && content.trim().length > 0) {
-        m3uText = content;
-      } else if (typeof url === 'string' && url.trim().length > 0) {
-        const { response } = await safeFetchWithRedirects(url.trim());
-        if (!response.ok) {
-          res.status(400).json({ error: `La playlist a répondu avec le statut HTTP ${response.status}` });
-          return;
-        }
-        m3uText = await response.text();
-      } else {
-        res.status(400).json({ error: 'Veuillez fournir une URL M3U ou coller un contenu M3U.' });
-        return;
-      }
-
-      const channels = parseM3uText(m3uText);
-      if (channels.length === 0) {
-        res.status(400).json({ error: 'Aucune chaîne HLS valide trouvée dans cette playlist.' });
-        return;
-      }
-
-      res.json({ channels });
-    } catch (err) {
-      res.status(400).json({
-        error: err instanceof Error ? err.message : 'Erreur lors de la lecture de la playlist M3U.',
-      });
-    }
-  });
-
-  // 4. Secure HLS Stream Proxy (solves CORS & mixed-content HTTP streams cleanly)
   app.get('/api/hls-proxy', async (req: Request, res: Response) => {
     const rawUrl = typeof req.query.url === 'string' ? req.query.url : '';
     if (!rawUrl) {
@@ -878,7 +1267,6 @@ async function startServer() {
             const trimmed = line.trim();
             if (!trimmed) return line;
 
-            // Rewrite URI="..." inside #EXT-X-KEY or #EXT-X-MAP or #EXT-X-MEDIA
             if (trimmed.startsWith('#')) {
               return trimmed.replace(/URI="([^"]+)"/g, (_match, uriValue: string) => {
                 try {
@@ -905,7 +1293,6 @@ async function startServer() {
         return;
       }
 
-      // Binary video segments (.ts, .m4s, .mp4, .aac)
       res.setHeader('Content-Type', contentType || 'video/mp2t');
       res.setHeader('Cache-Control', 'public, max-age=30');
       const arrayBuf = await response.arrayBuffer();
@@ -915,7 +1302,6 @@ async function startServer() {
     }
   });
 
-  // Mount Vite middleware in dev or static dist in production
   if (process.env.NODE_ENV === 'production') {
     const distPath = path.resolve(__dirname, 'dist');
     app.use(express.static(distPath));
