@@ -1,0 +1,6 @@
+{
+  "name": "MK.tv",
+  "description": "MK.tv — Plateforme de diffusion sportive en direct HD sans interruption : football, chaînes TV sportives, basketball, tennis et sports mécaniques classés par catégories.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
