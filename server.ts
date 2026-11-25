@@ -146,7 +146,8 @@ export interface RealChannel {
     | 'Qatar & Golfe'
     | 'Algérie'
     | 'Maroc'
-    | 'Sport International';
+    | 'Sport International'
+    | 'Kids & Animés';
   category:
     | 'tunisie'
     | 'qatar'
@@ -157,7 +158,8 @@ export interface RealChannel {
     | 'basketball'
     | 'tennis'
     | 'motorsport'
-    | 'combat';
+    | 'combat'
+    | 'kids';
   language: string;
   quality: '1080p60' | '720p60';
   description: string;
@@ -945,6 +947,390 @@ const VERIFIED_CHANNELS: RealChannel[] = [
         label: 'Serveur 4 · Glory Kickboxing',
         quality: '720p60',
         hlsUrl: 'https://6f972d29.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLWV1X0dsb3J5S2lja2JveGluZ19ITFM/playlist.m3u8',
+      },
+    ],
+  },
+
+  // === KIDS, DESSINS ANIMÉS & ANIMÉS 24/7 ===
+  {
+    id: 'kids-spacetoon',
+    number: 'KD 01',
+    name: 'Spacetoon (سبيستون)',
+    network: 'Kids & Animés',
+    category: 'kids',
+    language: 'Arabe',
+    quality: '720p60',
+    description: 'Chaîne officielle Spacetoon en direct continu — dessins animés, mangas et classiques jeunesse.',
+    isLiveStreamVerified: true,
+    servers: [
+      {
+        id: 'k-spc-s1',
+        label: 'Serveur Principal · Spacetoon MENA',
+        quality: '720p60',
+        hlsUrl: 'https://live-uae-next.spacetoongo.com/ST_MENA_NEXT/hls/r9p2hjipmw2kl.m3u8',
+      },
+      {
+        id: 'k-spc-s2',
+        label: 'Serveur Secours · MBC 3 Kids',
+        quality: '1080p60',
+        hlsUrl: 'https://shd-gcp-live.edgenextcdn.net/live/bitmovin-mbc-3-usa/5d58265a862a476dc7f97694addb5ded/index.m3u8',
+      },
+    ],
+  },
+  {
+    id: 'kids-mbc3',
+    number: 'KD 02',
+    name: 'MBC 3 Kids HD',
+    network: 'Kids & Animés',
+    category: 'kids',
+    language: 'Arabe',
+    quality: '1080p60',
+    description: 'Chaîne jeunesse MBC 3 en direct 1080p — dessins animés, aventures et séries enfants.',
+    isLiveStreamVerified: true,
+    servers: [
+      {
+        id: 'k-mbc3-s1',
+        label: 'Serveur Principal · MBC 3 1080p',
+        quality: '1080p60',
+        hlsUrl: 'https://shd-gcp-live.edgenextcdn.net/live/bitmovin-mbc-3-usa/5d58265a862a476dc7f97694addb5ded/index.m3u8',
+      },
+      {
+        id: 'k-mbc3-s2',
+        label: 'Serveur Secours · Spacetoon',
+        quality: '720p60',
+        hlsUrl: 'https://live-uae-next.spacetoongo.com/ST_MENA_NEXT/hls/r9p2hjipmw2kl.m3u8',
+      },
+    ],
+  },
+  {
+    id: 'kids-cn-arabic',
+    number: 'KD 03',
+    name: 'Cartoon Network Arabic (كرتون نتورك)',
+    network: 'Kids & Animés',
+    category: 'kids',
+    language: 'Arabe',
+    quality: '720p60',
+    description: 'Cartoon Network en arabe en direct — Gumball, Ben 10, Adventure Time et Teen Titans.',
+    isLiveStreamVerified: true,
+    servers: [
+      {
+        id: 'k-cna-s1',
+        label: 'Serveur Principal · CN Arabic',
+        quality: '720p60',
+        hlsUrl: 'http://149.100.11.252:8000/play/a056/index.m3u8',
+      },
+      {
+        id: 'k-cna-s2',
+        label: 'Serveur Secours · Cartoon Network World',
+        quality: '720p60',
+        hlsUrl: 'https://cdn4.skygo.mn/live/disk1/Cartoon_Network/HLSv3-FTA/Cartoon_Network.m3u8',
+      },
+    ],
+  },
+  {
+    id: 'kids-nick-arabia',
+    number: 'KD 04',
+    name: 'Nickelodeon Arabia HD',
+    network: 'Kids & Animés',
+    category: 'kids',
+    language: 'Arabe',
+    quality: '1080p60',
+    description: 'Nickelodeon en arabe — Bob l’éponge, Tortues Ninja, Pat’ Patrouille et séries jeunesse.',
+    isLiveStreamVerified: true,
+    servers: [
+      {
+        id: 'k-nka-s1',
+        label: 'Serveur Principal · Nick Arabia',
+        quality: '1080p60',
+        hlsUrl: 'http://85.237.89.159:3342/ar-s/Nickelodeon/index.m3u8',
+      },
+      {
+        id: 'k-nka-s2',
+        label: 'Serveur Secours · MBC 3',
+        quality: '1080p60',
+        hlsUrl: 'https://shd-gcp-live.edgenextcdn.net/live/bitmovin-mbc-3-usa/5d58265a862a476dc7f97694addb5ded/index.m3u8',
+      },
+    ],
+  },
+  {
+    id: 'kids-boomerang-fr',
+    number: 'KD 05',
+    name: 'Boomerang France HD',
+    network: 'Kids & Animés',
+    category: 'kids',
+    language: 'Français',
+    quality: '720p60',
+    description: 'Dessins animés classiques en français 24/7 — Tom & Jerry, Scooby-Doo, Looney Tunes et Mr Bean.',
+    isLiveStreamVerified: true,
+    servers: [
+      {
+        id: 'k-bmf-s1',
+        label: 'Serveur Principal · Boomerang FR',
+        quality: '720p60',
+        hlsUrl: 'http://41.205.93.154/BOOMERANG/index.m3u8',
+      },
+      {
+        id: 'k-bmf-s2',
+        label: 'Serveur Secours · Cartoonito / Boomerang',
+        quality: '720p60',
+        hlsUrl: 'http://cdn4.skygo.mn/live/disk1/Boomerang/HLSv3-FTA/Boomerang.m3u8',
+      },
+    ],
+  },
+  {
+    id: 'kids-onepiece-fr',
+    number: 'KD 06',
+    name: 'One Piece France TV',
+    network: 'Kids & Animés',
+    category: 'kids',
+    language: 'Français',
+    quality: '720p60',
+    description: 'Chaîne animée One Piece en français en continu 24/7.',
+    isLiveStreamVerified: true,
+    servers: [
+      {
+        id: 'k-op-s1',
+        label: 'Serveur Principal · One Piece FR',
+        quality: '720p60',
+        hlsUrl: 'https://jmp2.uk/plu-6380c94947c72b0007ee9a13.m3u8',
+      },
+      {
+        id: 'k-op-s2',
+        label: 'Serveur Secours · ADN TV+ Anime',
+        quality: '720p60',
+        hlsUrl: 'https://d3b73b34o7cvkq.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-gz2sgqzp076kf/adn.m3u8',
+      },
+    ],
+  },
+  {
+    id: 'kids-conan-fr',
+    number: 'KD 07',
+    name: 'Détective Conan France',
+    network: 'Kids & Animés',
+    category: 'kids',
+    language: 'Français',
+    quality: '720p60',
+    description: 'Diffusion continue de la série animée Détective Conan en français.',
+    isLiveStreamVerified: true,
+    servers: [
+      {
+        id: 'k-con-s1',
+        label: 'Serveur Principal · Conan FR',
+        quality: '720p60',
+        hlsUrl: 'https://jmp2.uk/plu-62f3e8ad2a8e8000077b013d.m3u8',
+      },
+      {
+        id: 'k-con-s2',
+        label: 'Serveur Secours · One Piece FR',
+        quality: '720p60',
+        hlsUrl: 'https://jmp2.uk/plu-6380c94947c72b0007ee9a13.m3u8',
+      },
+    ],
+  },
+  {
+    id: 'kids-adn-fr',
+    number: 'KD 08',
+    name: 'ADN TV+ Anime FR',
+    network: 'Kids & Animés',
+    category: 'kids',
+    language: 'Français',
+    quality: '720p60',
+    description: 'Chaîne officielle Animation Digital Network (ADN) — animés et mangas en direct.',
+    isLiveStreamVerified: true,
+    servers: [
+      {
+        id: 'k-adn-s1',
+        label: 'Serveur Principal · CloudFront ADN',
+        quality: '720p60',
+        hlsUrl: 'https://d3b73b34o7cvkq.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-gz2sgqzp076kf/adn.m3u8',
+      },
+      {
+        id: 'k-adn-s2',
+        label: 'Serveur Secours · Anime GO!',
+        quality: '1080p60',
+        hlsUrl: 'https://jmp2.uk/plu-691b3669c48674840c3b832a.m3u8',
+      },
+    ],
+  },
+  {
+    id: 'kids-mrbean-fr',
+    number: 'KD 09',
+    name: 'Mr Bean Dessin Animé FR',
+    network: 'Kids & Animés',
+    category: 'kids',
+    language: 'Français / Sans dialogue',
+    quality: '1080p60',
+    description: 'Mr Bean en série animée Full HD 1080p pour toute la famille.',
+    isLiveStreamVerified: true,
+    servers: [
+      {
+        id: 'k-mrb-s1',
+        label: 'Serveur Principal · Rakuten FR 1080p',
+        quality: '1080p60',
+        hlsUrl: 'https://amg00627-amg00627c31-rakuten-fr-3991.playouts.now.amagi.tv/playlist/amg00627-banijayfast-mrbeanfrcc-rakutenfr/playlist.m3u8',
+      },
+      {
+        id: 'k-mrb-s2',
+        label: 'Serveur Secours · Boomerang FR',
+        quality: '720p60',
+        hlsUrl: 'http://41.205.93.154/BOOMERANG/index.m3u8',
+      },
+    ],
+  },
+  {
+    id: 'kids-inazuma',
+    number: 'KD 10',
+    name: 'Inazuma Eleven TV',
+    network: 'Kids & Animés',
+    category: 'kids',
+    language: 'Français / Multi',
+    quality: '720p60',
+    description: 'Dessin animé football Inazuma Eleven en direct 24/7.',
+    isLiveStreamVerified: true,
+    servers: [
+      {
+        id: 'k-ina-s1',
+        label: 'Serveur Principal · Inazuma Live',
+        quality: '720p60',
+        hlsUrl: 'https://jmp2.uk/plu-632c6df43d2bc5000751f621.m3u8',
+      },
+    ],
+  },
+  {
+    id: 'kids-yugioh',
+    number: 'KD 11',
+    name: 'Yu-Gi-Oh! Anime 1080p',
+    network: 'Kids & Animés',
+    category: 'kids',
+    language: 'Anglais / Multi',
+    quality: '1080p60',
+    description: 'Chaîne officielle Yu-Gi-Oh! en haute définition 1080p en continu.',
+    isLiveStreamVerified: true,
+    servers: [
+      {
+        id: 'k-ygo-s1',
+        label: 'Serveur Principal · Amagi 1080p',
+        quality: '1080p60',
+        hlsUrl: 'https://amg01796-amg01796c19-rakuten-gb-7486.playouts.now.amagi.tv/playlist/amg01796-fastmediafast-yugioh2en-rakutengb/playlist.m3u8',
+      },
+      {
+        id: 'k-ygo-s2',
+        label: 'Serveur Secours · Anime GO!',
+        quality: '1080p60',
+        hlsUrl: 'https://jmp2.uk/plu-691b3669c48674840c3b832a.m3u8',
+      },
+    ],
+  },
+  {
+    id: 'kids-animego',
+    number: 'KD 12',
+    name: 'Anime GO! 1080p',
+    network: 'Kids & Animés',
+    category: 'kids',
+    language: 'International',
+    quality: '1080p60',
+    description: 'Séries animées japonaises et shonen en flux continu HD.',
+    isLiveStreamVerified: true,
+    servers: [
+      {
+        id: 'k-ago-s1',
+        label: 'Serveur Principal · Anime GO! HD',
+        quality: '1080p60',
+        hlsUrl: 'https://jmp2.uk/plu-691b3669c48674840c3b832a.m3u8',
+      },
+    ],
+  },
+  {
+    id: 'kids-cn-world',
+    number: 'KD 13',
+    name: 'Cartoon Network World HD',
+    network: 'Kids & Animés',
+    category: 'kids',
+    language: 'Anglais / Multi',
+    quality: '720p60',
+    description: 'Cartoon Network international en direct 24/7 — séries animées et comédies.',
+    isLiveStreamVerified: true,
+    servers: [
+      {
+        id: 'k-cnw-s1',
+        label: 'Serveur 1 · Cartoon Network FTA',
+        quality: '720p60',
+        hlsUrl: 'https://cdn4.skygo.mn/live/disk1/Cartoon_Network/HLSv3-FTA/Cartoon_Network.m3u8',
+      },
+      {
+        id: 'k-cnw-s2',
+        label: 'Serveur 2 · Cartoonito / Boomerang',
+        quality: '720p60',
+        hlsUrl: 'http://cdn4.skygo.mn/live/disk1/Boomerang/HLSv3-FTA/Boomerang.m3u8',
+      },
+    ],
+  },
+  {
+    id: 'kids-atfal',
+    number: 'KD 14',
+    name: 'Atfal & Mawaheb (أطفال ومواهب)',
+    network: 'Kids & Animés',
+    category: 'kids',
+    language: 'Arabe',
+    quality: '1080p60',
+    description: 'Chaîne jeunesse arabe Atfal & Mawaheb en direct 1080p — chants éducatifs et divertissement enfants.',
+    isLiveStreamVerified: true,
+    servers: [
+      {
+        id: 'k-atf-s1',
+        label: 'Serveur Principal · Streamlock 1080p',
+        quality: '1080p60',
+        hlsUrl: 'https://5aafcc5de91f1.streamlock.net/atfal1.com/atfal2/playlist.m3u8',
+      },
+    ],
+  },
+  {
+    id: 'kids-babyshark',
+    number: 'KD 15',
+    name: 'Baby Shark & Éveil TV 1080p',
+    network: 'Kids & Animés',
+    category: 'kids',
+    language: 'Anglais / Musical',
+    quality: '1080p60',
+    description: 'Comptines animées, Pinkfong et dessins animés d’éveil pour les tout-petits en 1080p.',
+    isLiveStreamVerified: true,
+    servers: [
+      {
+        id: 'k-bsk-s1',
+        label: 'Serveur Principal · Roku Wurl 1080p',
+        quality: '1080p60',
+        hlsUrl: 'https://newidco-babysharktv-1-us.roku.wurl.tv/playlist.m3u8',
+      },
+      {
+        id: 'k-bsk-s2',
+        label: 'Serveur Secours · BabyFirst HD',
+        quality: '720p60',
+        hlsUrl: 'https://cdn.fast.jwp.services/v1/channel/1_jB6940Ei_TvhvIHDL/manifest.m3u8',
+      },
+    ],
+  },
+  {
+    id: 'kids-90s-cartoons',
+    number: 'KD 16',
+    name: '90s Kids Cartoons Rétro',
+    network: 'Kids & Animés',
+    category: 'kids',
+    language: 'Anglais / Multi',
+    quality: '720p60',
+    description: 'Classiques dessins animés des années 90 en diffusion continue 24/7.',
+    isLiveStreamVerified: true,
+    servers: [
+      {
+        id: 'k-90s-s1',
+        label: 'Serveur Principal · 90s Kids 1',
+        quality: '720p60',
+        hlsUrl: 'https://jmp2.uk/plu-6452c814939a590008567a3b.m3u8',
+      },
+      {
+        id: 'k-90s-s2',
+        label: 'Serveur Secours · 90s Kids 2',
+        quality: '720p60',
+        hlsUrl: 'https://jmp2.uk/plu-6452c77ed3fdde00080eb3a8.m3u8',
       },
     ],
   },

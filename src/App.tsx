@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  ArrowLeftRight,
   Columns2,
   Flame,
   Gamepad2,
@@ -10,6 +11,7 @@ import {
   Radio,
   RefreshCw,
   Search,
+  Smile,
   Trophy,
   Tv,
   X,
@@ -23,6 +25,7 @@ import {
 } from './types/broadcast';
 import { RealVideoPlayer } from './components/RealVideoPlayer';
 import { ChannelDirectoryPanel } from './components/ChannelDirectoryPanel';
+import { ScreenBroadcastPicker } from './components/ScreenBroadcastPicker';
 import { RealMatchCard } from './components/RealMatchCard';
 import { RealScheduleTable } from './components/RealScheduleTable';
 
@@ -44,6 +47,7 @@ export default function App() {
   const [primaryChannel, setPrimaryChannel] = useState<RealChannel | null>(null);
   const [secondaryChannel, setSecondaryChannel] = useState<RealChannel | null>(null);
   const [selectedMatch, setSelectedMatch] = useState<RealMatch | null>(null);
+  const [secondaryMatch, setSecondaryMatch] = useState<RealMatch | null>(null);
 
   const [multiScreenMode, setMultiScreenMode] = useState(false);
   const [cinemaWideMode, setCinemaWideMode] = useState(false);
@@ -67,15 +71,31 @@ export default function App() {
       };
 
       if (chJson.channels && chJson.channels.length > 0) {
-        setChannels(chJson.channels);
-        setPrimaryChannel((curr) => curr ?? chJson.channels![0]);
-        setSecondaryChannel((curr) => curr ?? (chJson.channels![1] ?? chJson.channels![0]));
+        const list = chJson.channels;
+        setChannels(list);
+        const savedPrimaryId = window.localStorage.getItem('mk_screen1_channel');
+        const savedSecondaryId = window.localStorage.getItem('mk_screen2_channel');
+        setPrimaryChannel(
+          (curr) => curr ?? list.find((c) => c.id === savedPrimaryId) ?? list[0]
+        );
+        setSecondaryChannel(
+          (curr) =>
+            curr ??
+            list.find((c) => c.id === savedSecondaryId) ??
+            list.find((c) => c.category === 'kids') ??
+            list[1] ??
+            list[0]
+        );
       }
 
       if (mJson.matches) {
         setMatches(mJson.matches);
         setSelectedMatch((curr) => {
           if (!curr) return mJson.matches![0] ?? null;
+          return mJson.matches!.find((m) => m.id === curr.id) ?? curr;
+        });
+        setSecondaryMatch((curr) => {
+          if (!curr) return null;
           return mJson.matches!.find((m) => m.id === curr.id) ?? curr;
         });
       }
@@ -103,6 +123,7 @@ export default function App() {
   const categoryCounts = useMemo(() => {
     const counts: Record<SportCategoryId, number> = {
       all: matches.length + channels.length,
+      kids: channels.filter((c) => c.category === 'kids').length,
       bein: channels.filter((c) => c.network === 'beIN SPORTS').length,
       tunisie: channels.filter((c) => c.category === 'tunisie').length,
       qatar: channels.filter((c) => c.category === 'qatar').length,
@@ -145,6 +166,7 @@ export default function App() {
     const q = searchQuery.trim().toLowerCase();
     return matches.filter((m) => {
       if (
+        selectedCategory === 'kids' ||
         selectedCategory === 'bein' ||
         selectedCategory === 'channels' ||
         selectedCategory === 'tunisie' ||
@@ -190,26 +212,61 @@ export default function App() {
       .filter((g) => g.items.length > 0);
   }, [filteredMatches]);
 
-  const handleSelectChannel = (ch: RealChannel) => {
-    if (multiScreenMode && targetScreen === 'secondary') {
+  const assignChannelToScreen = (ch: RealChannel, screen: 'primary' | 'secondary') => {
+    if (screen === 'secondary') {
       setSecondaryChannel(ch);
+      setSecondaryMatch(null);
+      window.localStorage.setItem('mk_screen2_channel', ch.id);
     } else {
       setPrimaryChannel(ch);
+      if (ch.category === 'kids') {
+        setSelectedMatch(null);
+      }
+      window.localStorage.setItem('mk_screen1_channel', ch.id);
     }
+  };
+
+  const assignMatchToScreen = (match: RealMatch, screen: 'primary' | 'secondary') => {
+    const linked =
+      channels.find((c) => c.id === match.linkedChannelId) ?? channels[0] ?? null;
+    if (screen === 'secondary') {
+      setSecondaryMatch(match);
+      if (linked) {
+        setSecondaryChannel(linked);
+        window.localStorage.setItem('mk_screen2_channel', linked.id);
+      }
+    } else {
+      setSelectedMatch(match);
+      if (linked) {
+        setPrimaryChannel(linked);
+        window.localStorage.setItem('mk_screen1_channel', linked.id);
+      }
+    }
+  };
+
+  const handleSwapScreens = () => {
+    if (!primaryChannel || !secondaryChannel) return;
+    const prevPrimary = primaryChannel;
+    const prevSecondary = secondaryChannel;
+    const prevPrimaryMatch = selectedMatch;
+    const prevSecondaryMatch = secondaryMatch;
+    setPrimaryChannel(prevSecondary);
+    setSecondaryChannel(prevPrimary);
+    setSelectedMatch(prevSecondaryMatch);
+    setSecondaryMatch(prevPrimaryMatch);
+    window.localStorage.setItem('mk_screen1_channel', prevSecondary.id);
+    window.localStorage.setItem('mk_screen2_channel', prevPrimary.id);
+  };
+
+  const handleSelectChannel = (ch: RealChannel) => {
+    const target = multiScreenMode ? targetScreen : 'primary';
+    assignChannelToScreen(ch, target);
     playerSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   const handleSelectMatch = (match: RealMatch) => {
-    setSelectedMatch(match);
-    const linked =
-      channels.find((c) => c.id === match.linkedChannelId) ?? channels[0] ?? null;
-    if (linked) {
-      if (multiScreenMode && targetScreen === 'secondary') {
-        setSecondaryChannel(linked);
-      } else {
-        setPrimaryChannel(linked);
-      }
-    }
+    const target = multiScreenMode ? targetScreen : 'primary';
+    assignMatchToScreen(match, target);
     playerSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
@@ -230,6 +287,8 @@ export default function App() {
     switch (id) {
       case 'all':
         return <LayoutGrid className="w-3.5 h-3.5 shrink-0" />;
+      case 'kids':
+        return <Smile className="w-3.5 h-3.5 shrink-0" />;
       case 'bein':
         return <Tv className="w-3.5 h-3.5 shrink-0" />;
       case 'tunisie':
@@ -256,7 +315,7 @@ export default function App() {
     <div className="min-h-screen flex flex-col bg-[#080A0F] text-white overflow-x-hidden">
       {/* Top Bar — Strict 3-Zone Contract */}
       <header className="sticky top-0 z-40 bg-[#080A0F]/95 backdrop-blur-md border-b border-white/10">
-        <div className="max-w-[1360px] mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-6">
+        <div className="max-w-[1360px] mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-8">
           <a
             href="#direct"
             className="font-display text-xl font-extrabold tracking-tight text-white whitespace-nowrap shrink-0"
@@ -281,6 +340,13 @@ export default function App() {
               className="hover:text-white hover:underline underline-offset-8 decoration-rose-500 transition-colors whitespace-nowrap shrink-0"
             >
               Chaînes beIN
+            </a>
+            <a
+              href="#chaines"
+              onClick={() => setSelectedCategory('kids')}
+              className="hover:text-white hover:underline underline-offset-8 decoration-rose-500 transition-colors whitespace-nowrap shrink-0"
+            >
+              Kids & Animés
             </a>
             <a
               href="#categories"
@@ -374,51 +440,103 @@ export default function App() {
               </button>
 
               {multiScreenMode && (
-                <div className="flex items-center gap-1 p-0.5 rounded-lg bg-[#11151E] border border-white/15">
+                <>
                   <button
                     type="button"
-                    onClick={() => setTargetScreen('primary')}
-                    className={`px-2.5 py-1 rounded text-xs font-bold transition-colors whitespace-nowrap ${
-                      targetScreen === 'primary'
-                        ? 'bg-rose-600 text-white'
-                        : 'text-slate-300 hover:text-white'
-                    }`}
+                    onClick={handleSwapScreens}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#11151E] border border-white/15 hover:border-white/30 text-xs font-bold text-white transition-colors whitespace-nowrap"
                   >
-                    Écran 1
+                    <ArrowLeftRight className="w-3.5 h-3.5" />
+                    <span>Permuter</span>
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => setTargetScreen('secondary')}
-                    className={`px-2.5 py-1 rounded text-xs font-bold transition-colors whitespace-nowrap ${
-                      targetScreen === 'secondary'
-                        ? 'bg-rose-600 text-white'
-                        : 'text-slate-300 hover:text-white'
-                    }`}
-                  >
-                    Écran 2
-                  </button>
-                </div>
+
+                  <div className="flex items-center gap-1 p-0.5 rounded-lg bg-[#11151E] border border-white/15">
+                    <button
+                      type="button"
+                      onClick={() => setTargetScreen('primary')}
+                      className={`px-2.5 py-1 rounded text-xs font-bold transition-colors whitespace-nowrap ${
+                        targetScreen === 'primary'
+                          ? 'bg-rose-600 text-white'
+                          : 'text-slate-300 hover:text-white'
+                      }`}
+                    >
+                      Cibler Écran 1
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTargetScreen('secondary')}
+                      className={`px-2.5 py-1 rounded text-xs font-bold transition-colors whitespace-nowrap ${
+                        targetScreen === 'secondary'
+                          ? 'bg-rose-600 text-white'
+                          : 'text-slate-300 hover:text-white'
+                      }`}
+                    >
+                      Cibler Écran 2
+                    </button>
+                  </div>
+                </>
               )}
             </div>
           </div>
 
           {primaryChannel ? (
             multiScreenMode ? (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <RealVideoPlayer channel={primaryChannel} activeMatch={selectedMatch} compact />
-                <RealVideoPlayer
-                  channel={secondaryChannel ?? primaryChannel}
-                  activeMatch={null}
-                  compact
-                />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+                <div className="space-y-2.5">
+                  <ScreenBroadcastPicker
+                    screenLabel="Écran 1"
+                    isTargeted={targetScreen === 'primary'}
+                    channel={primaryChannel}
+                    activeMatch={selectedMatch}
+                    channels={channels}
+                    matches={matches}
+                    onTarget={() => setTargetScreen('primary')}
+                    onSelectChannel={(ch) => assignChannelToScreen(ch, 'primary')}
+                    onSelectMatch={(m) => assignMatchToScreen(m, 'primary')}
+                  />
+                  <RealVideoPlayer
+                    key={`screen1-${primaryChannel.id}`}
+                    channel={primaryChannel}
+                    activeMatch={selectedMatch}
+                    compact
+                  />
+                </div>
+
+                <div className="space-y-2.5">
+                  <ScreenBroadcastPicker
+                    screenLabel="Écran 2"
+                    isTargeted={targetScreen === 'secondary'}
+                    channel={secondaryChannel ?? primaryChannel}
+                    activeMatch={secondaryMatch}
+                    channels={channels}
+                    matches={matches}
+                    onTarget={() => setTargetScreen('secondary')}
+                    onSelectChannel={(ch) => assignChannelToScreen(ch, 'secondary')}
+                    onSelectMatch={(m) => assignMatchToScreen(m, 'secondary')}
+                  />
+                  <RealVideoPlayer
+                    key={`screen2-${(secondaryChannel ?? primaryChannel).id}`}
+                    channel={secondaryChannel ?? primaryChannel}
+                    activeMatch={secondaryMatch}
+                    compact
+                  />
+                </div>
               </div>
             ) : cinemaWideMode ? (
               <div className="w-full">
-                <RealVideoPlayer channel={primaryChannel} activeMatch={selectedMatch} />
+                <RealVideoPlayer
+                  key={`single-${primaryChannel.id}`}
+                  channel={primaryChannel}
+                  activeMatch={selectedMatch}
+                />
               </div>
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-4 items-stretch">
-                <RealVideoPlayer channel={primaryChannel} activeMatch={selectedMatch} />
+                <RealVideoPlayer
+                  key={`single-${primaryChannel.id}`}
+                  channel={primaryChannel}
+                  activeMatch={selectedMatch}
+                />
                 <ChannelDirectoryPanel
                   channels={channels}
                   activeChannelId={primaryChannel.id}
@@ -555,9 +673,72 @@ export default function App() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                 {filteredChannels.map((ch) => {
-                  const isPlaying =
-                    ch.id === primaryChannel?.id ||
-                    (multiScreenMode && ch.id === secondaryChannel?.id);
+                  const onScreen1 = ch.id === primaryChannel?.id;
+                  const onScreen2 = multiScreenMode && ch.id === secondaryChannel?.id;
+                  const isPlaying = onScreen1 || onScreen2;
+
+                  if (multiScreenMode) {
+                    return (
+                      <div
+                        key={ch.id}
+                        className={`rounded-xl border p-3.5 space-y-2 transition-colors ${
+                          isPlaying
+                            ? 'bg-[#181E2B] border-rose-500'
+                            : 'bg-[#11151E] border-white/10 hover:border-white/25'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-2 text-[11px]">
+                          <span className="font-mono font-bold text-rose-400">{ch.number}</span>
+                          <span className="font-mono tabular-nums font-bold text-slate-300">
+                            {ch.quality}
+                          </span>
+                        </div>
+                        <div className="font-display font-bold text-sm text-white truncate">
+                          {ch.name}
+                        </div>
+                        <div className="text-[11px] font-semibold text-slate-400 truncate">
+                          {ch.network} · {ch.language}
+                        </div>
+                        <div className="pt-2 border-t border-white/10 flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              assignChannelToScreen(ch, 'primary');
+                              playerSectionRef.current?.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'start',
+                              });
+                            }}
+                            className={`flex-1 py-1.5 px-2 rounded-lg text-[11px] font-bold transition-colors whitespace-nowrap ${
+                              onScreen1
+                                ? 'bg-rose-600 text-white'
+                                : 'bg-white/10 hover:bg-rose-600 text-slate-200 hover:text-white'
+                            }`}
+                          >
+                            {onScreen1 ? 'Sur Écran 1' : 'Mettre Écran 1'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              assignChannelToScreen(ch, 'secondary');
+                              playerSectionRef.current?.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'start',
+                              });
+                            }}
+                            className={`flex-1 py-1.5 px-2 rounded-lg text-[11px] font-bold transition-colors whitespace-nowrap ${
+                              onScreen2
+                                ? 'bg-rose-600 text-white'
+                                : 'bg-white/10 hover:bg-rose-600 text-slate-200 hover:text-white'
+                            }`}
+                          >
+                            {onScreen2 ? 'Sur Écran 2' : 'Mettre Écran 2'}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  }
+
                   return (
                     <button
                       key={ch.id}
@@ -690,6 +871,16 @@ export default function App() {
             <span>Matchs réels en direct & chaînes sportives HD</span>
           </div>
           <div className="flex flex-wrap items-center gap-5">
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedCategory('kids');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="hover:text-white transition-colors"
+            >
+              Kids & Animés
+            </button>
             <button
               type="button"
               onClick={() => {

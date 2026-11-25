@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Play, Tv } from 'lucide-react';
 import type { ChannelNetwork, RealChannel } from '../types/broadcast';
 
@@ -9,6 +10,7 @@ interface ChannelDirectoryPanelProps {
 
 const NETWORK_ORDER: ChannelNetwork[] = [
   'beIN SPORTS',
+  'Kids & Animés',
   'Tunisie',
   'Qatar & Golfe',
   'Algérie',
@@ -16,14 +18,34 @@ const NETWORK_ORDER: ChannelNetwork[] = [
   'Sport International',
 ];
 
+type DirectoryFilter = 'all' | 'sport' | 'kids' | 'maghreb';
+
 export function ChannelDirectoryPanel({
   channels,
   activeChannelId,
   onSelectChannel,
 }: ChannelDirectoryPanelProps) {
+  const [dirFilter, setDirFilter] = useState<DirectoryFilter>('all');
+
+  const visibleChannels = channels.filter((ch) => {
+    if (dirFilter === 'kids') return ch.network === 'Kids & Animés';
+    if (dirFilter === 'sport') {
+      return ch.network === 'beIN SPORTS' || ch.network === 'Sport International';
+    }
+    if (dirFilter === 'maghreb') {
+      return (
+        ch.network === 'Tunisie' ||
+        ch.network === 'Qatar & Golfe' ||
+        ch.network === 'Algérie' ||
+        ch.network === 'Maroc'
+      );
+    }
+    return true;
+  });
+
   const grouped = NETWORK_ORDER.map((network) => ({
     network,
-    items: channels.filter((c) => c.network === network),
+    items: visibleChannels.filter((c) => c.network === network),
   })).filter((g) => g.items.length > 0);
 
   return (
@@ -34,9 +56,33 @@ export function ChannelDirectoryPanel({
             <Tv className="w-4 h-4 text-rose-500 shrink-0" />
             <span className="truncate">Chaînes en Direct</span>
           </div>
-          <span className="text-[11px] font-mono font-bold text-slate-400 shrink-0">
-            {channels.length} TV
+          <span className="text-[11px] font-mono tabular-nums font-bold text-slate-400 shrink-0">
+            {visibleChannels.length} TV
           </span>
+        </div>
+
+        <div className="flex items-center gap-1 px-2.5 py-2 bg-[#0B0E14]/60 border-b border-white/10 shrink-0 overflow-x-auto">
+          {(
+            [
+              { id: 'all', label: 'Tout' },
+              { id: 'sport', label: 'Sport' },
+              { id: 'kids', label: 'Kids' },
+              { id: 'maghreb', label: 'Maghreb' },
+            ] as { id: DirectoryFilter; label: string }[]
+          ).map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setDirFilter(tab.id)}
+              className={`px-2.5 py-1 rounded-md text-[11px] font-bold whitespace-nowrap shrink-0 transition-colors ${
+                dirFilter === tab.id
+                  ? 'bg-rose-600 text-white'
+                  : 'text-slate-300 hover:text-white hover:bg-white/10'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
 
         <div className="flex-1 overflow-y-auto p-3 space-y-3.5">

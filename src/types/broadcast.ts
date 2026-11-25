@@ -1,5 +1,6 @@
 export type SportCategoryId =
   | 'all'
+  | 'kids'
   | 'bein'
   | 'tunisie'
   | 'qatar'
@@ -14,6 +15,7 @@ export type SportCategoryId =
 
 export type ChannelNetwork =
   | 'beIN SPORTS'
+  | 'Kids & Animés'
   | 'Tunisie'
   | 'Qatar & Golfe'
   | 'Algérie'
@@ -73,7 +75,12 @@ export const CATEGORIES: { id: SportCategoryId; label: string; description: stri
   {
     id: 'all',
     label: 'Tout En Direct',
-    description: 'Toutes les chaînes TV et matchs réels du jour en direct HD',
+    description: 'Toutes les chaînes TV, dessins animés et matchs réels du jour en direct HD',
+  },
+  {
+    id: 'kids',
+    label: 'Kids & Animés',
+    description: 'Dessins animés, mangas et chaînes jeunesse en direct : Spacetoon, MBC 3, Cartoon Network, Boomerang, One Piece, Détective Conan, ADN TV+',
   },
   {
     id: 'bein',
